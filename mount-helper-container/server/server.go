@@ -296,6 +296,9 @@ func handleCosMount() gin.HandlerFunc {
 		// pvcName := c.Query("pvc")
 		// pvcNamespace := c.Query("pvcNamespace")
 
+		os.Setenv("KUBERNETES_SERVICE_HOST", "172.20.0.1")
+		os.Setenv("KUBERNETES_SERVICE_PORT", "443")
+
 		k8sClient, err := createK8sClient()
 		if err != nil {
 			response := gin.H{
