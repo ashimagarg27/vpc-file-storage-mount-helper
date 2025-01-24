@@ -365,33 +365,6 @@ func handleCosMount() gin.HandlerFunc {
 			return
 		}
 
-		// secretsForReq := map[string]string{}
-		// volCtxForReq := map[string]string{}
-
-		// for k, v := range requiredSecret.Data {
-		// 	if k == "accessKey" || k == "secretKey" || k == "apiKey" || k == "kpRootKeyCRN" {
-		// 		secretsForReq[k] = string(v)
-		// 	} else {
-		// 		volCtxForReq[k] = string(v)
-		// 	}
-		// }
-
-		// mountFlags := storageClassMountFlags
-		// attr := volumeAttributes
-		// secret, err := decodeSecretData(requiredSecret.Data)
-		// if err != nil {
-		// 	c.JSON(http.StatusInternalServerError, gin.H{})
-		// 	return
-		// }
-		// m := objcsi.NewCSIMounterFactory()
-		// mounter := m.NewMounter(attr, secret, mountFlags)
-		// if err := mounter.Mount("", targetPath); err != nil {
-		// 	c.JSON(http.StatusInternalServerError, gin.H{})
-		// 	return
-		// }
-
-		//   csi.storage.k8s.io/ephemeral:false csi.storage.k8s.io/pod.name:cos-csi-app csi.storage.k8s.io/pod.namespace:default csi.storage.k8s.io/pod.uid:c56ad355-e92e-4d21-a690-33b9d4fc5ee6   csi.storage.k8s.io/serviceAccount.name:default
-
 		options := getOptions()
 
 		csiDriver, err := driver.Setups3Driver(options.ServerMode, csiConfig.CSIDriverName, csiConfig.VendorVersion, logger)
@@ -468,18 +441,6 @@ func createK8sClient() (*kubernetes.Clientset, error) {
 	return clientset, nil
 }
 
-// func decodeSecretData(data map[string][]byte) (map[string]string, error) {
-// 	decoded := make(map[string]string)
-// 	for key, value := range data {
-// 		decodedValue, err := base64.StdEncoding.DecodeString(string(value))
-// 		if err != nil {
-// 			return nil, fmt.Errorf("error decoding key %s: %v", key, err)
-// 		}
-// 		decoded[key] = string(decodedValue)
-// 	}
-// 	return decoded, nil
-// }
-
 type Options struct {
 	ServerMode     string
 	Endpoint       string
@@ -503,3 +464,42 @@ func getOptions() *Options {
 		MetricsAddress: *metricsAddress,
 	}
 }
+
+// secretsForReq := map[string]string{}
+// volCtxForReq := map[string]string{}
+
+// for k, v := range requiredSecret.Data {
+// 	if k == "accessKey" || k == "secretKey" || k == "apiKey" || k == "kpRootKeyCRN" {
+// 		secretsForReq[k] = string(v)
+// 	} else {
+// 		volCtxForReq[k] = string(v)
+// 	}
+// }
+
+// mountFlags := storageClassMountFlags
+// attr := volumeAttributes
+// secret, err := decodeSecretData(requiredSecret.Data)
+// if err != nil {
+// 	c.JSON(http.StatusInternalServerError, gin.H{})
+// 	return
+// }
+// m := objcsi.NewCSIMounterFactory()
+// mounter := m.NewMounter(attr, secret, mountFlags)
+// if err := mounter.Mount("", targetPath); err != nil {
+// 	c.JSON(http.StatusInternalServerError, gin.H{})
+// 	return
+// }
+
+//   csi.storage.k8s.io/ephemeral:false csi.storage.k8s.io/pod.name:cos-csi-app csi.storage.k8s.io/pod.namespace:default csi.storage.k8s.io/pod.uid:c56ad355-e92e-4d21-a690-33b9d4fc5ee6   csi.storage.k8s.io/serviceAccount.name:default
+
+// func decodeSecretData(data map[string][]byte) (map[string]string, error) {
+// 	decoded := make(map[string]string)
+// 	for key, value := range data {
+// 		decodedValue, err := base64.StdEncoding.DecodeString(string(value))
+// 		if err != nil {
+// 			return nil, fmt.Errorf("error decoding key %s: %v", key, err)
+// 		}
+// 		decoded[key] = string(decodedValue)
+// 	}
+// 	return decoded, nil
+// }
