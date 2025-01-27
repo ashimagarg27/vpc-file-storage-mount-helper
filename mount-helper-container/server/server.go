@@ -43,7 +43,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 func init() {
@@ -298,6 +298,7 @@ func handleCosMount() gin.HandlerFunc {
 
 		// os.Setenv("KUBERNETES_SERVICE_HOST", "172.21.0.1")
 		// os.Setenv("KUBERNETES_SERVICE_PORT", "443")
+		// os.Setenv("KUBECONFIG", "/var/lib/kubelet/kubeconfig")
 
 		k8sClient, err := createK8sClient()
 		if err != nil {
@@ -425,7 +426,20 @@ func handleCosUnmount() gin.HandlerFunc {
 
 func createK8sClient() (*kubernetes.Clientset, error) {
 	// Create a Kubernetes client configuration
-	config, err := rest.InClusterConfig()
+	// config, err :=   rest.InClusterConfig()
+	var master = flag.String(
+		"master",
+		"",
+		"Master URL to build a client config from. Either this or kubeconfig needs to be set if the provisioner is being run out of cluster.",
+	)
+
+	var kubeconfig = flag.String(
+		"kubeconfig",
+		"/var/lib/kubelet/kubeconfig",
+		"Absolute path to the kubeconfig file. Either this or master needs to be set if the provisioner is being run out of cluster.",
+	)
+
+	config, err := clientcmd.BuildConfigFromFlags(*master, *kubeconfig)
 	if err != nil {
 		logger.Error("Error creating Kubernetes client configuration: ", zap.Error(err))
 		return nil, err
