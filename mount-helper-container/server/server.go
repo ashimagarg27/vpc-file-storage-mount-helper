@@ -22,11 +22,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	csiConfig "github.com/IBM/ibm-object-csi-driver/config"
@@ -300,6 +303,8 @@ func handleCosMount() gin.HandlerFunc {
 		// os.Setenv("KUBERNETES_SERVICE_PORT", "443")
 		// os.Setenv("KUBECONFIG", "/var/lib/kubelet/kubeconfig")
 
+		test()
+
 		k8sClient, err := createK8sClient()
 		if err != nil {
 			response := gin.H{
@@ -453,6 +458,76 @@ func createK8sClient() (*kubernetes.Clientset, error) {
 	}
 
 	return clientset, nil
+}
+
+func test() (*kubernetes.Clientset, error) {
+	fmt.Println("Starting code")
+
+	// Define the directory path (hardcoded or modify as needed)
+	dirPath := "/var/lib/kubelet"
+
+	// Get a list of files in the directory
+	files, err := ioutil.ReadDir(dirPath)
+	if err != nil {
+		log.Fatalf("Error reading directory: %v", err)
+		return nil, err
+	}
+
+	// Print the list of files
+	fmt.Println("Files in directory:")
+	var fileList []string
+	for _, file := range files {
+		if !file.IsDir() { // Only consider files, not subdirectories
+			fmt.Println(file.Name())
+			fileList = append(fileList, file.Name())
+		}
+	}
+	// If there are no files, exit
+	if len(fileList) == 0 {
+		fmt.Println("No files found in the directory.")
+		return nil, err
+	}
+
+	// Choose the first file from the list and print its content
+	fileToRead := filepath.Join(dirPath, "kubeconfig")
+	fmt.Printf("\nReading content of file: %s\n\n", fileToRead)
+
+	content, err := os.ReadFile(fileToRead)
+	if err != nil {
+		log.Fatalf("Error reading file: %v", err)
+	}
+
+	// Print file content
+	fmt.Println(string(content))
+
+	// Hardcoded kubeconfig file path
+	kubeconfig := "/var/lib/kubelet/kubeconfig"
+
+	// Build the Kubernetes client configuration
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	if err != nil {
+		log.Fatalf("Error building kubeconfig: %v", err)
+	}
+	fmt.Println("config built successfully")
+	// Create the Kubernetes clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		log.Fatalf("Error creating Kubernetes client: %v", err)
+	}
+	fmt.Println("k8s client created successfully")
+
+	// List storage classes
+	storageClasses, err := clientset.StorageV1().StorageClasses().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		log.Fatalf("Error listing storage classes: %v", err)
+	}
+
+	fmt.Println("Storage Classes:")
+	for _, sc := range storageClasses.Items {
+		fmt.Println(sc.Name)
+	}
+
+	return nil, nil
 }
 
 type Options struct {
