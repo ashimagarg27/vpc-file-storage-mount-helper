@@ -34,6 +34,29 @@ LINUX_FEDORA=("Fedora Linux"     $NA            $NA)
 LINUX_SUSE=("SLES"               "12"           "$ZYP")
 LINUX_RED_HAT=("Red Hat Enterprise Linux" "7" "$YUM")
 
+declare -A region_map=( 
+    ["dal"]="us-south"
+    ["us-south"]="us-south" 
+    ["lon"]="eu-gb"
+    ["eu-gb"]="eu-gb" 
+    ["fra"]="eu-de"
+    ["eu-de"]="eu-de"
+    ["syd"]="au-syd"
+    ["au-syd"]="au-syd"
+    ["tok"]="jp-tok"
+    ["jp-tok"]="jp-tok"
+    ["osa"]="jp-osa"
+    ["jp-osa"]="jp-osa"
+    ["wdc"]="us-east"
+    ["us-east"]="us-east"
+    ["mad"]="eu-es"
+    ["eu-es"]="eu-es"
+    ["tor"]="ca-tor"
+    ["ca-tor"]="ca-tor" 
+    ["sao"]="br-sao"
+    ["br-sao"]="br-sao" 
+    )
+
 
 log () {
     echo "$1"
@@ -265,7 +288,7 @@ _install_app() {
         elif [ "$LINUX_INSTALL_APP" == "$APT" ]; then
             eval "apt-get --allow-unauthenticated install $PACKAGE_NAME"
         elif [ "$LINUX_INSTALL_APP" == "$ZYP" ]; then
-            eval "zypper --no-gpg-checks install $PACKAGE_NAME"
+            eval "zypper --no-gpg-checks install -y $PACKAGE_NAME"
         fi
     else
         eval "$LINUX_INSTALL_APP $PACKAGE_NAME"
@@ -442,8 +465,14 @@ install_tls_certificates() {
 }
 init_mount_helper () {
     if [[ "$INSTALL_ARG" == "region="* ]]; then
-        log "Updating config file: ./share.conf"
-        sed -i "s/region=.*/$INSTALL_ARG/" ./share.conf
+        region_code="${INSTALL_ARG#region=}"
+        mapped_region="${region_map[$region_code]}"
+        if [ -n "$mapped_region" ]; then
+            log "Updating config file: ./share.conf"
+            sed -i "s/region=.*/region=$mapped_region/" ./share.conf
+        else
+            exit_err "Error: Invalid region code '$region_code'"
+        fi
         INSTALL_ARG=""
     fi
     if [[ "$INSTALL_MOUNT_OPTION_ARG" == "stage" ]]; then
