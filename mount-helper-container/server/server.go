@@ -27,6 +27,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	mounterUtils "github.com/IBM/ibm-object-csi-driver/pkg/mounter/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -276,6 +277,27 @@ func mountStatus(sysOp SystemOperation) gin.HandlerFunc {
 
 func handleCosMount() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var request struct {
+			Path    string   `json:"path"`
+			Command string   `json:"command"`
+			Args    []string `json:"args"`
+		}
+
+		if err := c.BindJSON(&request); err != nil {
+			logger.Error("Invalid request: ", zap.Error(err))
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+			return
+		}
+
+		// logger.Info("New mount request with values: ", zap.String("RequestID:", request.RequestID), zap.String("Source mount Path:", request.MountPath), zap.String("Target Path:", request.TargetPath))
+
+		utils := mounterUtils.MounterOptsUtils{}
+		err := utils.FuseMount(request.Path, request.Command, request.Args)
+		if err != nil {
+			logger.Error("Mount Failed: ", zap.Error(err))
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Mount Failed"})
+			return
+		}
 
 		c.JSON(http.StatusOK, "Success!!")
 	}
