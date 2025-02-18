@@ -305,6 +305,26 @@ func handleCosMount() gin.HandlerFunc {
 
 func handleCosUnmount() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var request struct {
+			Path string `json:"path"`
+		}
+
+		if err := c.BindJSON(&request); err != nil {
+			logger.Error("Invalid request: ", zap.Error(err))
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+			return
+		}
+
+		logger.Info("New unmount request with values: ", zap.String("Path:", request.Path))
+
+		utils := mounterUtils.MounterOptsUtils{}
+		err := utils.FuseUnmount(request.Path)
+		if err != nil {
+			logger.Error("Mount Failed: ", zap.Error(err))
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Mount Failed"})
+			return
+		}
+
 		c.JSON(http.StatusOK, "Success!!")
 	}
 }
