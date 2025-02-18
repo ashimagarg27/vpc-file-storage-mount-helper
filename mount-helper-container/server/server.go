@@ -289,7 +289,7 @@ func handleCosMount() gin.HandlerFunc {
 			return
 		}
 
-		// logger.Info("New mount request with values: ", zap.String("RequestID:", request.RequestID), zap.String("Source mount Path:", request.MountPath), zap.String("Target Path:", request.TargetPath))
+		logger.Info("New mount request with values: ", zap.String("Path:", request.Path), zap.String("Command:", request.Command), zap.Any("Args:", request.Args))
 
 		utils := mounterUtils.MounterOptsUtils{}
 		err := utils.FuseMount(request.Path, request.Command, request.Args)
