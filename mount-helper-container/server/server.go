@@ -283,6 +283,8 @@ func handleCosMount() gin.HandlerFunc {
 			Args    []string `json:"args"`
 		}
 
+		logger.Info("New mount request with values: ", zap.Any("Request:", request))
+
 		if err := c.BindJSON(&request); err != nil {
 			logger.Error("Invalid request: ", zap.Error(err))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
