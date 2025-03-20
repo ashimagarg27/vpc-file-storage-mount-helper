@@ -324,6 +324,8 @@ func handleCosMount() gin.HandlerFunc {
 				return
 			}
 
+			logger.Info("metaPath", zap.String("", metaPath))
+
 			if !pathExist {
 				if err = mkdirAll(metaPath, 0755); // #nosec G301: used for s3fs
 				err != nil {
@@ -332,6 +334,8 @@ func handleCosMount() gin.HandlerFunc {
 					return
 				}
 			}
+
+			logger.Info("path created")
 
 			accessKeys := ""
 			if request.APIKey != "" {
@@ -346,6 +350,8 @@ func handleCosMount() gin.HandlerFunc {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 				return
 			}
+
+			logger.Info("pass file", zap.String("passwdFile", passwdFile))
 		} else {
 			metaPath := path.Join(metaRootRclone, fmt.Sprintf("%x", sha256.Sum256([]byte(request.Path))))
 			if pathExist, err = checkPath(metaPath); err != nil {
