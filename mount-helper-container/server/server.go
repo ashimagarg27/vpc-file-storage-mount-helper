@@ -50,8 +50,10 @@ var (
 	socketDir  = "/var/lib/"
 	socketPath = socketDir + "ibmshare.sock"
 
-	s3fs           = "s3fs"
-	metaRoot       = "/var/lib/ibmc-s3fs"
+	s3fs   = "s3fs"
+	rclone = "rclone"
+	// metaRoot       = "/var/lib/ibmc-s3fs"
+	metaRoot       = "/var/lib/s3fs"
 	passFile       = ".passwd-s3fs" // #nosec G101: not password
 	metaRootRclone = "/var/lib/ibmc-rclone"
 	configPath     = "/root/.config/rclone"
@@ -296,7 +298,7 @@ func handleCosMount() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request struct {
 			Path      string   `json:"path"`
-			Command   string   `json:"command"`
+			Mounter   string   `json:"mounter"`
 			Args      []string `json:"args"`
 			APIKey    string   `json:"apiKey"`
 			AccessKey string   `json:"accessKey"`
@@ -311,14 +313,19 @@ func handleCosMount() gin.HandlerFunc {
 			return
 		}
 
-		logger.Info("New mount request with values: ", zap.String("Path:", request.Path), zap.String("Command:", request.Command), zap.Any("Args:", request.Args))
+		logger.Info("New mount request with values: ", zap.String("Path:", request.Path), zap.String("Mounter:", request.Mounter), zap.Any("Args:", request.Args))
 
 		var pathExist bool
 		var err error
+		var mounterType string
 
-		if request.Command == s3fs {
+		if request.Mounter == s3fs+"-mounter" {
+			logger.Info("MOUNTER S3FS...")
 			metaPath := path.Join(metaRoot, fmt.Sprintf("%x", sha256.Sum256([]byte(request.Path))))
-			if pathExist, err = checkPath(metaPath); err != nil {
+			logger.Info("metaRoot", zap.String("", metaRoot))
+			pathExist, err = checkPath(metaPath)
+			logger.Info("pathExist", zap.Bool("", pathExist))
+			if err != nil {
 				logger.Error("S3FSMounter Mount: Cannot stat directory", zap.String("metaPath", metaPath), zap.Error(err))
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 				return
@@ -327,11 +334,13 @@ func handleCosMount() gin.HandlerFunc {
 			logger.Info("metaPath", zap.String("", metaPath))
 
 			if !pathExist {
-				if err = mkdirAll(metaPath, 0755); // #nosec G301: used for s3fs
-				err != nil {
+				err = mkdirAll(metaPath, 0755) // #nosec G301: used for s3fs
+				if err != nil {
 					logger.Error("S3FSMounter Mount: Cannot create directory", zap.String("metaPath", metaPath), zap.Error(err))
 					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 					return
+				} else {
+					logger.Info("S3FSMounter Mount: MetaPath created Successfully...")
 				}
 			}
 
@@ -351,8 +360,11 @@ func handleCosMount() gin.HandlerFunc {
 				return
 			}
 
+			mounterType = s3fs
+
 			logger.Info("pass file", zap.String("passwdFile", passwdFile))
-		} else {
+		} else if request.Mounter == rclone+"-mounter" {
+			logger.Info("MOUNTER RCLONE...")
 			metaPath := path.Join(metaRootRclone, fmt.Sprintf("%x", sha256.Sum256([]byte(request.Path))))
 			if pathExist, err = checkPath(metaPath); err != nil {
 				logger.Error("RcloneMounter Mount: Cannot stat directory", zap.String("metaPath", metaPath), zap.Error(err))
@@ -377,10 +389,18 @@ func handleCosMount() gin.HandlerFunc {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 				return
 			}
+
+			mounterType = rclone
+
+			logger.Info("configPathWithVolID", zap.String("configPathWithVolID", configPathWithVolID))
+		} else {
+			logger.Error("Invalid Request!!!!")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+			return
 		}
 
 		utils := mounterUtils.MounterOptsUtils{}
-		err = utils.FuseMount(request.Path, request.Command, request.Args)
+		err = utils.FuseMount(request.Path, mounterType, request.Args)
 		if err != nil {
 			logger.Error("Mount Failed: ", zap.Error(err))
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Mount Failed"})
@@ -418,7 +438,9 @@ func handleCosUnmount() gin.HandlerFunc {
 }
 
 func checkPath(path string) (bool, error) {
+	logger.Info("In checkPath")
 	if path == "" {
+		logger.Info("In checkPath, path" + path)
 		return false, errors.New("undefined path")
 	}
 	_, err := os.Stat(path)

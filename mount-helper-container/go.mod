@@ -3,7 +3,7 @@ module server
 go 1.23.6
 
 require (
-	github.com/IBM/ibm-object-csi-driver v0.0.5
+	github.com/IBM/ibm-object-csi-driver v0.0.6
 	github.com/gin-gonic/gin v1.10.0
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
