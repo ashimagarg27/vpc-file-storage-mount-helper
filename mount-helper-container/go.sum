@@ -1,5 +1,5 @@
-github.com/IBM/ibm-object-csi-driver v0.0.5 h1:UOzpJh2o/qXByqYGdk83crUwFCb2/ayX5L81rFCRjwQ=
-github.com/IBM/ibm-object-csi-driver v0.0.5/go.mod h1:2W1p5CBjUpFoOvY7a3ltssgwU7w1i2G5yGrfcAis+Lo=
+github.com/IBM/ibm-object-csi-driver v0.0.6 h1:wzJ2HresVbOhnoM8e4uYOhWiDOXDE2IvwcG9e4zmP/E=
+github.com/IBM/ibm-object-csi-driver v0.0.6/go.mod h1:2W1p5CBjUpFoOvY7a3ltssgwU7w1i2G5yGrfcAis+Lo=
 github.com/bytedance/sonic v1.11.6 h1:oUp34TzMlL+OY1OUWxHqsdkgC/Zfc85zGqw9siXjrc0=
 github.com/bytedance/sonic v1.11.6/go.mod h1:LysEHSvpvDySVdC2f87zGWf6CIKJcAvqab1ZaiQtds4=
 github.com/bytedance/sonic/loader v0.1.1 h1:c+e5Pt1k/cy5wMveRDyk2X4B9hF4g7an8N3zCYjJFNM=
