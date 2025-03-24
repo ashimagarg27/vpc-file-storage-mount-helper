@@ -82,8 +82,8 @@ jobs:
           /home/runner/work/vpc-file-storage-mount-helper/vpc-file-storage-mount-helper/${{ matrix.package_dir }}/mount.ibmshare-latest.tar.gz.sha256
           /home/runner/work/vpc-file-storage-mount-helper/vpc-file-storage-mount-helper/mount-helper-container/mount-helper-container-latest.tar.gz
           /home/runner/work/vpc-file-storage-mount-helper/vpc-file-storage-mount-helper/mount-helper-container/mount-helper-container-latest.tar.gz.sha256
-        tag_name: 0.1.1
-        name: 0.1.1
+        tag_name: 0.1.2
+        name: 0.1.2
         body: CSR generated with SHA1 is not supported to get certs using Metadata.
 
     - name: Initialize CodeQL
